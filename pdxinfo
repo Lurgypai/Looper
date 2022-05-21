@@ -2,5 +2,5 @@ name=Looper
 author=Lurgypai
 description=Make simple loops.
 bundleID=com.lurgypai.looper
-version=1.0
+version=2.0
 imagePath=images/assets
