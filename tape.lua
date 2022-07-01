@@ -9,6 +9,7 @@ function makeTape()
         rate = 1.0,
         offset = 0.0,
         targetLength = 1.0,
+        volume = 1.0,
         queued = false,
         queuedRecording = false
     }
@@ -34,6 +35,7 @@ function startPlaying(tape)
     local remaining_frames = total_frames - start
 
     tape.player:setPlayRange(0, start + (remaining_frames * tape.targetLength))
+    tape.player:setVolume(tape.volume)
     if tape.rate > 0.01 or tape.rate < -0.01 then
         tape.player:play()
     end
@@ -74,7 +76,7 @@ function startRecording(tape)
 
     if recording then
         snd.micinput.stopRecording()
-        -- no need to stop recording here
+        -- no need to reset "recording" flag
     end
 
     snd.micinput.recordToSample(tape.sound_buffer, recording_callback)

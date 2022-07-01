@@ -23,7 +23,7 @@ local default_switch_offset = {
 
 local default_label_offset = {
     x = 57,
-    y = 168
+    y = 177
 }
 
 local gear1_offset = {
@@ -37,7 +37,6 @@ local gear2_offset = {
 }
 
 function moveTapeGFXTo(tape_gfx, x, y)
-    print("Moving to "..x..", "..y)
     tape_gfx.tape_spr:moveTo(x, y)
     tape_gfx.gear_spr1:moveTo(gear1_offset.x + x, gear1_offset.y + y)
     tape_gfx.gear_spr2:moveTo(gear2_offset.x + x, gear2_offset.y + y)
@@ -95,6 +94,11 @@ end
 
 function setTapeGFXTargetLength(tape_gfx, targetLength)
     local offset = 270 * targetLength - 135
+    tape_gfx.switch_spr:moveTo(tape_gfx.switch_offset.x + offset, tape_gfx.switch_offset.y)
+end
+
+function setTapeGFXVolume(tape_gfx, volume)
+    local offset = 270 * volume - 135
     tape_gfx.switch_spr:moveTo(tape_gfx.switch_offset.x + offset, tape_gfx.switch_offset.y)
 end
 

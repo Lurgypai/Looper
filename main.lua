@@ -31,6 +31,7 @@ local tapes = {
 local modePlaybackSpeed <const> = 1
 local modeStartOffset <const> = 2
 local modeLength <const> = 3
+local modeVolume <const> = 4
 
 local edit_mode = modePlaybackSpeed
 
@@ -43,7 +44,6 @@ function startup()
     curr_tape = tapes[1]
 
     for index, tape_gfx in ipairs(tape_gfxs) do
-        print("Moving "..index.." to "..tape_width * index - tape_width)
         moveTapeGFXTo(tape_gfx, tape_width * index - tape_width, 0)
         setTapeGFXRate(tape_gfx, 1, 4)
         setTapeGFXStartOffset(tape_gfx, 0)
@@ -65,22 +65,15 @@ function playdate.BButtonDown()
     end
 
     -- if its the first tape, start recording
-    if tape_index == 1 then
+    if tape_index == 1 or not isPlaying(tapes[1]) then
         startRecording(curr_tape)
     else
         -- otherwise, queue the recording
-        print("queued recording of tape "..tape_index)
         curr_tape.queuedRecording = true
     end
 end
 
 function playdate.BButtonUp()
-    -- stop listening/recording
-    if listening then
-        snd.micinput.stopListening()
-        listening = false
-    end
-
     if curr_tape.queuedRecording then
         curr_tape.queuedRecording = false
     end
@@ -101,14 +94,14 @@ end
 function playdate.upButtonDown()
     edit_mode -= 1
     if edit_mode < 1 then
-        edit_mode = modeLength
+        edit_mode = modeVolume
     end
     setLabelIndex(edit_mode)
 end
 
 function playdate.downButtonDown()
     edit_mode += 1
-    if edit_mode > 3 then
+    if edit_mode > modeVolume then
         edit_mode = 1
     end
     setLabelIndex(edit_mode)
@@ -142,17 +135,21 @@ end
 
 function playdate.update()
     local curr_tape_gfx = tape_gfxs[tape_index]
+
     local playbackTime = getLength(tapes[1])
     if playdate.getElapsedTime() > playbackTime then
         playdate.resetElapsedTime()
-        for _, tape in pairs(tapes) do
+        for i, tape in ipairs(tapes) do
+            -- only play queued tapes
             if tape.queued then
-                startPlaying(tape)
+                -- always replay the first tape, not necessarily the other tracks
+                if i == 1  or not isPlaying(tape) then
+                    startPlaying(tape)
+                end
             end
         end
 
         if curr_tape.queuedRecording then
-            print("Began recording tape "..tape_index)
             curr_tape.queuedRecording = false
             startRecording(curr_tape)
         end
@@ -187,7 +184,7 @@ function playdate.update()
             curr_tape.targetLength += change / 1440
 
             if curr_tape.targetLength < 0 then
-                curr_tape.targetLength = 9
+                curr_tape.targetLength = 0
             elseif curr_tape.targetLength > 1 then
                 curr_tape.targetLength = 1
             end
@@ -198,6 +195,17 @@ function playdate.update()
             end
         end
         setTapeGFXTargetLength(curr_tape_gfx, curr_tape.targetLength)
+    elseif edit_mode == modeVolume then
+        if change ~= 0 then
+            curr_tape.volume += change / 1440
+
+            if curr_tape.volume > 1 then
+                curr_tape.volume = 1
+            elseif curr_tape.volume < 0 then
+                curr_tape.volume = 0
+            end
+        end
+        setTapeGFXVolume(curr_tape_gfx, curr_tape.volume)
     end
 
 
